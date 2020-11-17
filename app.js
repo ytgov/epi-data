@@ -7,6 +7,7 @@ const port = process.env.PORT
 
 const PASSWORD = process.env.PASSWORD
 const USER = process.env.USER
+const DAYS = 21
 
 //Basic Auth Setup
 const basicAuth = require('express-basic-auth')
@@ -25,7 +26,7 @@ var options = {
       page: '1',
       per_page: '25',
       'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
-      'filters[[FORMHERO.SUBMITTED_AT][value]': '2020-07-01',
+      'filters[[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
       'filters[[FORMHERO.SUBMITTED_AT][query]': 'GT'
     },
     headers: {
@@ -58,6 +59,12 @@ function pickList(form) {
     )
 }
 
+function resultWindow(){
+    var currentTime = new Date()
+    currentTime.setDate(currentTime.getDate()-DAYS)
+    return currentTime.toISOString().substr(0,10)
+}
+
 function toCSV (formData){
     const regex =  /\]\,\[/gm
     const headers = '"Entry Date", "Airline", "Traveller History"\n'
@@ -75,7 +82,7 @@ app.get('/status', (req, res) => {
 app.get('/epiCSV', basicAuth({
     users: { 'admin' : PASSWORD },
     challenge: true,
-}),(req, res) => {    
+}),(req, res) => {   
     axios.request(options).then(function (response) {
         var result = response.data.data
         res.header('Content-Type', 'text/csv')
