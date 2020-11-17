@@ -1,23 +1,31 @@
 # epi-data
-Epi-Data 
 
-
-Understanding the environment variables
+## Understanding the environment variables
 
 Environment variables should never be checked into the repository!
 
-API_PORT=(the port the API will be listening on (doesn't have to match the docker port))
-FRONTEND_URL=(the url of the service, from browser)
-AUTH_REDIRECT=(FRONTEND_URL from above)/login-complete
-VIVVO_CLIENT_ID=(the client id provided for the service)
-VIVVO_CLIENT_SECRET=(the client secret provided for the service)
-VIVVO_CALLBACK_URL=(the fully qualified url of the API, must match setup in Vivvo)/authorization-code/callback
-Building the container image
+PORT= (internal port the app will listen on (doesn't have to match the docker port))
 
-docker build -t vue-template .
+HOST=(the PROOF host where the form data resides)
 
-Running the container in test or production
+FORM_SERIES=(internal form identifier)
 
-By default, the container will run in development mode, but following the step above, you can create the appropriate environment files for the instance you are targetting. Depending, the application will look for either src/api/.env.test or src/api/.env.production. To tell the API which instance to use, add the environment variable NODE_ENV to the docker run command like below.
+API_KEY=(the API key provided to access the form data)
 
-docker run -p 8222:3000 -e NODE_ENV=production --restart=on-failure vue-template
+USERNAME=(the username used to secure the endpoint)
+
+PASSWORD=(the password used to download data)
+
+
+## Building the container image
+
+```bash
+docker build -t epi-data.
+```
+## Running the container in production
+
+docker run -p <external_port>:<internal_port> -e NODE_ENV=production --restart=on-failure epi-data
+
+```bash
+docker run -p <external_port>:<internal_port> -e NODE_ENV=production --restart=on-failure epi-data
+```
