@@ -9,6 +9,8 @@ const PASSWORD = process.env.PASSWORD
 const USER = process.env.USER
 const DAYS = 21
 
+const https = require('https');
+
 //Basic Auth Setup
 const basicAuth = require('express-basic-auth')
 //app.use(basicAuth({
@@ -18,6 +20,10 @@ const basicAuth = require('express-basic-auth')
 
 //Axios setup to call out to TRAC
 var axios = require("axios").default;
+
+var agent = new https.Agent({  
+    rejectUnauthorized: false
+})
 
 var options = {
     method: 'GET',
@@ -31,8 +37,11 @@ var options = {
     },
     headers: {
       authorization: `Bearer ${process.env.API_KEY}`
-    }
-  };
+    },
+    httpsAgent: agent
+  }
+
+
 
 function removeLastComma(str) {
     return str.replace(/,(\s+)?$/, '');   
