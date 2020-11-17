@@ -20,7 +20,7 @@ PASSWORD=(the password used to download data - this can also be added to the doc
 ## Building the container image
 
 ```bash
-docker build -t epi-data.
+docker build -t epi-data .
 ```
 ## Running the container in production
 
