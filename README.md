@@ -27,5 +27,5 @@ docker build -t epi-data .
 docker run -p <external_port>:<internal_port> -e password=<password> --restart=on-failure epi-data
 
 ```bash
-docker run -p <external_port>:<internal_port> -e password=a-really-strong-password --restart=on-failure epi-data
+docker run -p 8203:3000 -e password=areallystrongpassword --restart=on-failure epi-data
 ```
