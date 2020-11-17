@@ -30,7 +30,7 @@ var options = {
     url: `${process.env.HOST}/api/forms/${process.env.FORM_SERIES}/submissions`,
     params: {
       page: '1',
-      per_page: '25',
+      per_page: '5000',
       'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
       'filters[[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
       'filters[[FORMHERO.SUBMITTED_AT][query]': 'GT'
