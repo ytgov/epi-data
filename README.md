@@ -14,7 +14,7 @@ API_KEY=(the API key provided to access the form data)
 
 USERNAME=(the username used to secure the endpoint)
 
-PASSWORD=(the password used to download data)
+PASSWORD=(the password used to download data - this can also be added to the docker run cmd)
 
 
 ## Building the container image
@@ -24,8 +24,8 @@ docker build -t epi-data.
 ```
 ## Running the container in production
 
-docker run -p <external_port>:<internal_port> -e NODE_ENV=production --restart=on-failure epi-data
+docker run -p <external_port>:<internal_port> -e password=<password> --restart=on-failure epi-data
 
 ```bash
-docker run -p <external_port>:<internal_port> -e NODE_ENV=production --restart=on-failure epi-data
+docker run -p <external_port>:<internal_port> -e password=a-really-strong-password --restart=on-failure epi-data
 ```
