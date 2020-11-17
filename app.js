@@ -6,6 +6,7 @@ const app = express()
 const port = process.env.PORT
 
 const PASSWORD = process.env.PASSWORD
+const USER = process.env.USER
 
 //Basic Auth Setup
 const basicAuth = require('express-basic-auth')
@@ -19,7 +20,7 @@ var axios = require("axios").default;
 
 var options = {
     method: 'GET',
-    url: `${process.env.HOST}${process.env.FORM_SERIES}/submissions`,
+    url: `${process.env.HOST}/api/forms/${process.env.FORM_SERIES}/submissions`,
     params: {
       page: '1',
       per_page: '25',
