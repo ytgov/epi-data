@@ -33,7 +33,12 @@ var options = {
       per_page: '5000',
       'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
       'filters[[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
-      'filters[[FORMHERO.SUBMITTED_AT][query]': 'GT'
+      'filters[[FORMHERO.SUBMITTED_AT][query]': 'GT',
+
+      'filters[travellerDetails.0.recentTravel][type]': 'STRING',
+      'filters[travellerDetails.0.recentTravel][value]': '',
+      'filters[travellerDetails.0.recentTravel][query]': 'NE',
+      'filters[travellerDetails.0.recentTravel][key]': 'travellerDetails[0].recentTravel'
     },
     headers: {
       authorization: `Bearer ${process.env.API_KEY}`
