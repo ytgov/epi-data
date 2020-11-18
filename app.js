@@ -96,7 +96,8 @@ app.get('/status', (req, res) => {
 app.get('/epiCSV', basicAuth({
     users: { 'admin' : PASSWORD },
     challenge: true,
-}),(req, res) => {   
+}),(req, res) => {  
+    console.log(` ${new Date()} ${req.method} ${req.path} ${req.ip}`) 
     axios.request(options).then(function (response) {
         var result = response.data.data
         res.header('Content-Type', 'text/csv')
