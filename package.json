@@ -4,7 +4,7 @@
   "description": "A simple service to enable epidemiologists to download data",
   "main": "app.js",
   "dependencies": {
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "express": "^4.17.1",
     "dotenv": "^8.2.0",
     "express-basic-auth": "^1.2.0"
