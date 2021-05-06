@@ -25,7 +25,8 @@ var agent = new https.Agent({
     rejectUnauthorized: false
 })
 
-var options = {
+var options = function() {
+  return {
     method: 'GET',
     url: `${process.env.HOST}/api/forms/${process.env.FORM_SERIES}/submissions`,
     params: {
@@ -45,6 +46,7 @@ var options = {
     },
     httpsAgent: agent
   }
+};
 
 
 
@@ -98,7 +100,7 @@ app.get('/epiCSV', basicAuth({
     challenge: true,
 }),(req, res) => {  
     console.log(` ${new Date()} ${req.method} ${req.path} ${req.ip}`) 
-    axios.request(options).then(function (response) {
+    axios.request(options()).then(function (response) {
         var result = response.data.data
         res.header('Content-Type', 'text/csv')
         res.send(Buffer.from(toCSV(result.map(pickList))))
