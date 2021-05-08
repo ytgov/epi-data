@@ -9,6 +9,8 @@ const PASSWORD = process.env.PASSWORD
 const USER = process.env.USER
 const DAYS = 21
 
+const PAGINATION_PER_PAGE = 1000
+
 const https = require('https');
 
 //Basic Auth Setup
@@ -30,8 +32,9 @@ var options = function() {
     method: 'GET',
     url: `${process.env.HOST}/api/forms/${process.env.FORM_SERIES}/submissions`,
     params: {
-      page: '1',
-      per_page: '5000',
+      // Page is now set dynamically before each call.
+      page: 1,
+      per_page: PAGINATION_PER_PAGE,
       'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
       'filters[[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
       'filters[[FORMHERO.SUBMITTED_AT][query]': 'GT',
@@ -90,6 +93,34 @@ function toCSV (formData){
     return headers + p.slice(2,-2)
 }
 
+/**
+ * Retrieve data from the API endpoint, dealing with pagination.
+ *
+ * This function ends the response once pagination is complete.
+ *
+ * @param {object} res This is the Express response object.
+ * @param {number} page This is the page to return.
+ */
+function recursivelyRetrieveDataAndWriteToResponse(res, page = 1) {
+  // FIXME: replace thisRequestOptions with options(page).
+  var thisRequestOptions = options()
+  thisRequestOptions.params.page = page
+  axios.request(thisRequestOptions).then(function (response) {
+      var result = response.data.data
+      res.write(Buffer.from(toCSV(result.map(pickList))))
+      var pagination = response.data.meta.pagination
+      if (pagination && pagination.current_page != pagination.total_pages) {
+        // Recursively request the next page of results.
+        recursivelyRetrieveDataAndWriteToResponse(res, pagination.current_page + 1)
+      } else {
+        // Close the connection once we're done.
+        res.end();
+      }
+    }).catch(function (error) {
+      console.error(error);
+    });
+}
+
 app.get('/status', (req, res) => {
     res.send({"status":'OK'})
   })
@@ -99,15 +130,9 @@ app.get('/epiCSV', basicAuth({
     users: { 'admin' : PASSWORD },
     challenge: true,
 }),(req, res) => {  
-    console.log(` ${new Date()} ${req.method} ${req.path} ${req.ip}`) 
-    axios.request(options()).then(function (response) {
-        var result = response.data.data
-        res.header('Content-Type', 'text/csv')
-        res.send(Buffer.from(toCSV(result.map(pickList))))
-        //res.send(toCSV(result.map(pickList)))
-      }).catch(function (error) {
-        console.error(error);
-      });
+    console.log(` ${new Date()} ${req.method} ${req.path} ${req.ip}`)
+    res.header('Content-Type', 'text/csv')
+    recursivelyRetrieveDataAndWriteToResponse(res)
 })
 
 
