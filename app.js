@@ -35,8 +35,8 @@ var options = {
       page: 1,
       per_page: PAGINATION_PER_PAGE,
       'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
-      'filters[[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
-      'filters[[FORMHERO.SUBMITTED_AT][query]': 'GT',
+      'filters[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
+      'filters[FORMHERO.SUBMITTED_AT][query]': 'GT',
 
       'filters[travellerDetails.0.recentTravel][type]': 'STRING',
       'filters[travellerDetails.0.recentTravel][value]': '',
@@ -49,7 +49,23 @@ var options = {
     httpsAgent: agent
   }
 
+let dynamicOptions = function(daysAgo) {
+  // return options;
+  var dateObj = new Date()
+  dateObj.setDate(dateObj.getDate()-daysAgo)
+  let dateValue = dateObj.getFullYear() +  "-" + (dateObj.getMonth()+1).toString().padStart(2,0) + "-" + dateObj.getDate().toString().padStart(2,0)
+  console.log(dateValue)
 
+  let daysAgoParams = Object.assign(options.params, {
+    'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
+    'filters[FORMHERO.SUBMITTED_AT][value]': dateValue,
+    'filters[FORMHERO.SUBMITTED_AT][query]': 'EQ',
+  })
+
+  return Object.assign(options, {
+    params: daysAgoParams
+  })
+}
 
 function removeLastComma(str) {
     return str.replace(/,(\s+)?$/, '');   
@@ -79,6 +95,8 @@ function pickList(form) {
 function resultWindow(){
     var currentTime = new Date()
     currentTime.setDate(currentTime.getDate()-DAYS)
+    // FIXME Using toISOString is wrong, as toISOString returns a UTC datetime,
+    // which can be a different day.
     return currentTime.toISOString().substr(0,10)
 }
 
@@ -89,6 +107,33 @@ function toCSV (formData){
 
     var p = formData.replace( regex, "\n")
     return headers + p.slice(2,-2)
+}
+
+/**
+ * Retrieve data from the API endpoint for a single day.
+ *
+ * This function does not deal with pagination at all.
+ *
+ * See https://stackoverflow.com/a/47343357/118996
+ *
+ * @param {object} res This is the Express response object.
+ * @param {number} daysAgo The number of days in the past to query.
+ * @param {number} daysAgoLimit At what point to stop.
+ */
+function recursivelyRetrieveDataOneDayAtATimeAndWriteToResponse(res, daysAgo, daysAgoLimit) {
+  axios.request(dynamicOptions(daysAgo)).then(function (response) {
+      const result = response.data.data
+      res.write(Buffer.from(toCSV(result.map(pickList))))
+      if (daysAgo < daysAgoLimit) {
+        // Recursively request the previous day of results.
+        recursivelyRetrieveDataOneDayAtATimeAndWriteToResponse(res, daysAgo + 1, daysAgoLimit)
+      } else {
+        // Close the connection once we're done.
+        res.end();
+      }
+    }).catch(function (error) {
+      console.error(error);
+    });
 }
 
 /**
@@ -131,6 +176,15 @@ app.get('/epiCSV', basicAuth({
     console.log(` ${new Date()} ${req.method} ${req.path} ${req.ip}`)
     res.header('Content-Type', 'text/csv')
     recursivelyRetrieveDataAndWriteToResponse(res)
+})
+
+app.get('/epiCSVByDay', basicAuth({
+    users: { 'admin' : PASSWORD },
+    challenge: true,
+}),(req, res) => {
+    console.log(` ${new Date()} ${req.method} ${req.path} ${req.ip}`)
+    res.header('Content-Type', 'text/csv')
+    recursivelyRetrieveDataOneDayAtATimeAndWriteToResponse(res, 0, DAYS)
 })
 
 
