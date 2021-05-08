@@ -6,7 +6,7 @@ const app = express()
 const port = process.env.PORT
 
 const PASSWORD = process.env.PASSWORD
-const USER = process.env.USER
+const USER = process.env.USERNAME
 const DAYS = 21
 
 const PAGINATION_PER_PAGE = 1000
@@ -172,7 +172,7 @@ app.get('/status', (req, res) => {
   
 
 app.get('/epiCSV', basicAuth({
-    users: { 'admin' : PASSWORD },
+    users: { [USER] : PASSWORD },
     challenge: true,
 }),(req, res) => {  
     console.log(` ${new Date()} ${req.method} ${req.path} ${req.ip}`)
@@ -181,7 +181,7 @@ app.get('/epiCSV', basicAuth({
 })
 
 app.get('/epiCSVByDay', basicAuth({
-    users: { 'admin' : PASSWORD },
+    users: { [USER] : PASSWORD },
     challenge: true,
 }),(req, res) => {
     console.log(` ${new Date()} ${req.method} ${req.path} ${req.ip}`)
@@ -191,6 +191,7 @@ app.get('/epiCSVByDay', basicAuth({
 
 
 app.listen(port, () => {
+    console.log({ [USER] : PASSWORD })
     console.log(`Epi-App listeing at http://localhost:${port}`)
   })
 //console.log(results)
