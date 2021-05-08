@@ -27,12 +27,20 @@ var agent = new https.Agent({
     rejectUnauthorized: false
 })
 
-var options = function(param_page = 1) {
+/**
+ * Build a list of Request options.
+ *
+ * This captures the default authorization and query parameters.
+ *
+ * @param {object} params_override Query parameters to override.
+ * @return {object} Request options.
+ */
+var options = function(params_override = {}) {
   return {
     method: 'GET',
     url: `${process.env.HOST}/api/forms/${process.env.FORM_SERIES}/submissions`,
-    params: {
-      page: param_page,
+    params: Object.assign({
+      page: 1,
       per_page: PAGINATION_PER_PAGE,
       'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
       'filters[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
@@ -43,6 +51,7 @@ var options = function(param_page = 1) {
       'filters[travellerDetails.0.recentTravel][query]': 'NE',
       'filters[travellerDetails.0.recentTravel][key]': 'travellerDetails[0].recentTravel'
     },
+    params_override),
     headers: {
       authorization: `Bearer ${process.env.API_KEY}`
     },
@@ -50,21 +59,16 @@ var options = function(param_page = 1) {
   }
 };
 
-let dynamicOptions = function(daysAgo) {
-  // return options;
+let optionsPerDay = function(daysAgo) {
   var dateObj = new Date()
   dateObj.setDate(dateObj.getDate()-daysAgo)
   let dateValue = dateObj.getFullYear() +  "-" + (dateObj.getMonth()+1).toString().padStart(2,0) + "-" + dateObj.getDate().toString().padStart(2,0)
   console.log(dateValue)
 
-  let daysAgoParams = Object.assign(options.params, {
+  return options({
     'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
     'filters[FORMHERO.SUBMITTED_AT][value]': dateValue,
     'filters[FORMHERO.SUBMITTED_AT][query]': 'EQ',
-  })
-
-  return Object.assign(options, {
-    params: daysAgoParams
   })
 }
 
@@ -122,7 +126,7 @@ function toCSV (formData){
  * @param {number} daysAgoLimit At what point to stop.
  */
 function recursivelyRetrieveDataOneDayAtATimeAndWriteToResponse(res, daysAgo, daysAgoLimit) {
-  axios.request(dynamicOptions(daysAgo)).then(function (response) {
+  axios.request(optionsPerDay(daysAgo)).then(function (response) {
       const result = response.data.data
       res.write(Buffer.from(toCSV(result.map(pickList))))
       if (daysAgo < daysAgoLimit) {
@@ -146,7 +150,7 @@ function recursivelyRetrieveDataOneDayAtATimeAndWriteToResponse(res, daysAgo, da
  * @param {number} page This is the page to return.
  */
 function recursivelyRetrieveDataAndWriteToResponse(res, page = 1) {
-  axios.request(options(page)).then(function (response) {
+  axios.request(options({page: page})).then(function (response) {
       var result = response.data.data
       res.write(Buffer.from(toCSV(result.map(pickList))))
       var pagination = response.data.meta.pagination
