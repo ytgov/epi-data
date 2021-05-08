@@ -27,13 +27,12 @@ var agent = new https.Agent({
     rejectUnauthorized: false
 })
 
-var options = function() {
+var options = function(param_page = 1) {
   return {
     method: 'GET',
     url: `${process.env.HOST}/api/forms/${process.env.FORM_SERIES}/submissions`,
     params: {
-      // Page is now set dynamically before each call.
-      page: 1,
+      page: param_page,
       per_page: PAGINATION_PER_PAGE,
       'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
       'filters[[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
@@ -102,10 +101,7 @@ function toCSV (formData){
  * @param {number} page This is the page to return.
  */
 function recursivelyRetrieveDataAndWriteToResponse(res, page = 1) {
-  // FIXME: replace thisRequestOptions with options(page).
-  var thisRequestOptions = options()
-  thisRequestOptions.params.page = page
-  axios.request(thisRequestOptions).then(function (response) {
+  axios.request(options(page)).then(function (response) {
       var result = response.data.data
       res.write(Buffer.from(toCSV(result.map(pickList))))
       var pagination = response.data.meta.pagination
