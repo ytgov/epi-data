@@ -191,7 +191,6 @@ app.get('/epiCSVByDay', basicAuth({
 
 
 app.listen(port, () => {
-    console.log({ [USER] : PASSWORD })
     console.log(`Epi-App listeing at http://localhost:${port}`)
   })
 //console.log(results)
