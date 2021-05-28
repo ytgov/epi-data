@@ -13,6 +13,25 @@ const PAGINATION_PER_PAGE = 1000
 
 const https = require('https');
 
+// Map of values to place names for travellerDetails.recentTravelinformation.
+// Based on schema 4.0.2
+const recentTravelDict = {
+  "1": "Alberta",
+  "2": "British Columbia",
+  "3": "Manitoba",
+  "4": "New Brunswick",
+  "5": "Newfoundland/Labrador",
+  "6": "Northwest Territories",
+  "7": "Nova Scotia",
+  "8": "Nunavut",
+  "9": "Ontario",
+  "10": "Prince Edward Island",
+  "11": "Quebec",
+  "12": "Saskatchewan",
+  "13": "Yukon",
+  "14": "International"
+}
+
 //Basic Auth Setup
 const basicAuth = require('express-basic-auth')
 //app.use(basicAuth({
@@ -74,9 +93,20 @@ function removeLastComma(str) {
  function travellerHistory(form) {
     var x=0
     var history = ""
-    while (form.data[`travellerDetails[${x}].recentTravel`]){
-        history = history + form.data[`travellerDetails[${x}].recentTravel`] + "| "
-        x ++ 
+    if (form.data[`travellerDetails[0].recentTravel`]) {
+      // Before 2021-05-25 travellerDetails was a list.
+      while (form.data[`travellerDetails[${x}].recentTravel`]){
+          history += form.data[`travellerDetails[${x}].recentTravel`] + "| "
+          x ++
+      }
+    } else {
+      // Since 2021-05-25 travelerDetails is a scalar.
+      if (recentTravelDict[form.data[`travellerDetails.recentTravel`]]) {
+        history = recentTravelDict[form.data[`travellerDetails.recentTravel`]]
+      }
+      if (form.data[`travellerDetails.recentTravelinformation`]) {
+        history +=  ": " + form.data[`travellerDetails.recentTravelinformation`]
+      }
     }
     return removeLastComma(history)
 }
