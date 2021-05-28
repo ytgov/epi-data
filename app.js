@@ -45,11 +45,6 @@ var options = function(params_override = {}) {
       'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
       'filters[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
       'filters[FORMHERO.SUBMITTED_AT][query]': 'GT',
-
-      'filters[travellerDetails.0.recentTravel][type]': 'STRING',
-      'filters[travellerDetails.0.recentTravel][value]': '',
-      'filters[travellerDetails.0.recentTravel][query]': 'NE',
-      'filters[travellerDetails.0.recentTravel][key]': 'travellerDetails[0].recentTravel'
     },
     params_override),
     headers: {
@@ -115,6 +110,25 @@ function toCSV (formData){
 }
 
 /**
+ * Filter function to strip out entries that do not have travel information.
+ *
+ * @param {object} form Proof submission.
+ * @return {boolean} Include this submission or not?
+ */
+function excludeNoTravelInfo(form) {
+  if (form.data[`travellerDetails[0].recentTravel`]) {
+    // Before 2021-05-25 travellerDetails was a list.
+    return true
+  } else {
+    // Since 2021-05-25 travelerDetails is a scalar.
+    if (form.data[`travellerDetails.recentTravel`]) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
  * Retrieve data from the API endpoint for a single day.
  *
  * This function does not deal with pagination at all.
@@ -128,7 +142,7 @@ function toCSV (formData){
 function recursivelyRetrieveDataOneDayAtATimeAndWriteToResponse(res, daysAgo, daysAgoLimit) {
   axios.request(optionsPerDay(daysAgo)).then(function (response) {
       const result = response.data.data
-      res.write(Buffer.from(toCSV(result.map(pickList))))
+      res.write(Buffer.from(toCSV(result.filter(excludeNoTravelInfo).map(pickList))))
       if (daysAgo < daysAgoLimit) {
         // Recursively request the previous day of results.
         recursivelyRetrieveDataOneDayAtATimeAndWriteToResponse(res, daysAgo + 1, daysAgoLimit)
@@ -152,7 +166,7 @@ function recursivelyRetrieveDataOneDayAtATimeAndWriteToResponse(res, daysAgo, da
 function recursivelyRetrieveDataAndWriteToResponse(res, page = 1) {
   axios.request(options({page: page})).then(function (response) {
       var result = response.data.data
-      res.write(Buffer.from(toCSV(result.map(pickList))))
+      res.write(Buffer.from(toCSV(result.filter(excludeNoTravelInfo).map(pickList))))
       var pagination = response.data.meta.pagination
       if (pagination && pagination.current_page != pagination.total_pages) {
         // Recursively request the next page of results.
