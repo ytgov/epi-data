@@ -107,11 +107,10 @@ function resultWindow(){
 
 function toCSV (formData){
     const regex =  /\]\,\[/gm
-    const headers = '"Entry Date", "Airline", "Traveller History"\n'
     formData = JSON.stringify(formData)
 
     var p = formData.replace( regex, "\n")
-    return headers + p.slice(2,-2)
+    return p.slice(2,-2)
 }
 
 /**
