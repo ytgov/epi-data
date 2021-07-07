@@ -61,9 +61,9 @@ var options = function(params_override = {}) {
     params: Object.assign({
       page: 1,
       per_page: PAGINATION_PER_PAGE,
-      'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
-      'filters[FORMHERO.SUBMITTED_AT][value]': resultWindow(),
-      'filters[FORMHERO.SUBMITTED_AT][query]': 'GT',
+      'filter[created_at][type]': 'DATE',
+      'filter[created_at][value]': resultWindow(),
+      'filter[created_at][operation]': 'gt',
     },
     params_override),
     headers: {
@@ -80,9 +80,9 @@ let optionsPerDay = function(daysAgo) {
   console.log(dateValue)
 
   return options({
-    'filters[FORMHERO.SUBMITTED_AT][type]': 'DATE',
-    'filters[FORMHERO.SUBMITTED_AT][value]': dateValue,
-    'filters[FORMHERO.SUBMITTED_AT][query]': 'EQ',
+    'filter[created_at][type]': 'DATE',
+    'filter[created_at][value]': dateValue,
+    'filter[created_at][opeartion]': 'eq',
   })
 }
 
