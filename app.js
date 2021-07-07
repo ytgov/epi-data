@@ -198,7 +198,7 @@ function recursivelyRetrieveDataAndWriteToResponse(res, page = 1) {
       var result = response.data.data
       res.write(Buffer.from(toCSV(result.filter(excludeNoTravelInfo).map(pickList))))
       var pagination = response.data.meta.pagination
-      if (pagination && pagination.current_page != pagination.total_pages) {
+      if (pagination && pagination.current_page < pagination.total_pages) {
         // Recursively request the next page of results.
         recursivelyRetrieveDataAndWriteToResponse(res, pagination.current_page + 1)
       } else {
